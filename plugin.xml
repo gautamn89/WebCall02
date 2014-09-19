@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="com.example.webcall.RecentList"
+    version="1.0.0">
+    
+    
+    <engines>
+    <engine name="cordova" version="2.9.0"/>
+    </engines>
+    
+    <license>Apache 2.0</license>
+    
+    <name>RecentList</name>
+    <description>Calllogs for Android</description>
+    <author>Gautam</author>
+    <keywords>android,calllogs</keywords>
+    
+    
+    <asset src="www/Calllogs.js" target="Calllogs.js"/>
+    <asset src="www/Calllogs" target="Calllogs"/>
+    
+    <!-- android -->
+    <platform name="android">
+      <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <activity android:name="com.example.webcall.RecentList"
+                      android:label="@string/app_name">
+                <intent-filter>
+                </intent-filter>
+            </activity>
+        </config-file>
+     
+     
+     <!-- Cordova 2.0.0 -->
+        <config-file target="res/xml/config.xml" parent="/cordova/plugins">
+            <plugin name="RecentList"
+                value="com.example.webcall.RecentList"/>
+        </config-file>
+
+        <source-file src="src/android/com/example/webcall/RecentList.java"
+                target-dir="src/com/example/webcall"/>
+    </platform>
+
+</plugin>
+
+
+
+
+
