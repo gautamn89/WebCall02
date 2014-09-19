@@ -60,6 +60,7 @@
     <gap:plugin name="org.apache.cordova.network-information" />
     <gap:plugin name="org.apache.cordova.vibration" />
     <gap:plugin name="org.apache.cordova.statusbar" />
+    <gap:plugin name="org.apache.cordova.Storage"/>
    <!-- <gap:plugin name="com.example.webcall.RecentList" />
     <gap:plugin name="com.phonegap.plugin.statusbar" version="1.1.0" /> -->
 
