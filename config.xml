@@ -28,7 +28,7 @@
         Warmconnect Team
     </author>
   
-
+    <content src="index.html" />
     <preference name="loglevel" value="DEBUG" />
     <preference name="phonegap-version" value="3.5.0" />
     <preference name="orientation" value="portrait" />
