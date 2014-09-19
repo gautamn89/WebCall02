@@ -600,7 +600,8 @@ $(document).on('click', '#a_contact_retrive', function(){
 	options.multiple=true; // return multiple results
 	var filter = ["displayName" ,"name" ,"phoneNumbers"]; // return contact.displayName field
 	// find contacts
-	navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+	navigator.contacts.find(onContactSuccess, onContactError, filter, options);
+	//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 	function onContactSuccess(contacts) {
 		var autocompletenumber = new Array();
 		$("#contactlist").empty();
