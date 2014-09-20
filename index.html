@@ -319,7 +319,8 @@ function onDeviceReady() {
 						var filter = ["displayName" , "name" , "phoneNumbers"]; // return contact.displayName field
 						console.log("After setting contact filter");
 						// below line is use to find contacts
-						navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+						navigator.contacts.find(onContactSuccess, onContactError, filter, options);
+						//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 						console.log("navigator.contacts.find worked");
 					}
 				//}
