@@ -177,6 +177,14 @@ document.addEventListener("deviceready", onDeviceReady, false);
 
 function onDeviceReady() {
 	
+	if (window.device.platform == 'iOS')        
+            StatusBar.overlaysWebView(false);
+	app.receivedEvent('deviceready');
+	alert("Status bar value hidden");
+	
+	
+	
+	
 		console.log("Inside first onDevice ready");
 		var datastatus = checkConnection();
 		if (typeof(Storage) == "undefined" ) {
@@ -3030,9 +3038,18 @@ $( window ).on( "navigate", function( event, data ){
 		}
 } 
 });
-/**
+
 $(document).on('pagecreate', '#pageTest', function(){
 	
+	if(window.StatusBar) {
+  // org.apache.cordova.statusbar required
+  StatusBar.styleDefault();
+  StatusBar.overlaysWebView(false);
+  alert("Test status bar");
+  
+}
+
+/**	
 	var userid = localStorage.getItem("userid");
 	var domainname = localStorage.getItem("domainname");
 	var password = localStorage.getItem("passwd");
@@ -3052,9 +3069,11 @@ $(document).on('pagecreate', '#pageTest', function(){
 				alert("Unable to connect to server");
 				}
 			});
+			**/
+			
 	
 });
-**/
+
 
 /**
 $(document).on('pagecreate', '#pageTest2', function(){
