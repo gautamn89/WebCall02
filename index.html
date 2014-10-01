@@ -331,7 +331,11 @@ function onDeviceReady() {
 						var filter = ["displayName" , "name" , "phoneNumbers"]; // return contact.displayName field
 						console.log("After setting contact filter");
 						// below line is use to find contacts
+<<<<<<< HEAD
 						 navigator.contacts.find(onContactSuccess, onContactError, filter, options); //this is the new format in phonegap 3.0
+=======
+						navigator.contacts.find(onContactSuccess, onContactError, filter, options);
+>>>>>>> 13a47b1a1ea90ccbcc65fbc405e9703560fd9531
 						//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 						console.log("navigator.contacts.find worked");
 					}
@@ -679,8 +683,13 @@ $(document).on('click', '#a_contact_retrive', function(){
 	options.multiple=true; // return multiple results
 	var filter = ["displayName" ,"name" ,"phoneNumbers"]; // return contact.displayName field
 	// find contacts
+<<<<<<< HEAD
 	//navigator.contacts.find(successCB, errorCB, filter, options) // NOTE THIS IS THE NEW FORMAT FOR CREATING DATABASE FROM PHONE GAP 3.0
 	navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+=======
+	navigator.contacts.find(onContactSuccess, onContactError, filter, options);
+	//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+>>>>>>> 13a47b1a1ea90ccbcc65fbc405e9703560fd9531
 	function onContactSuccess(contacts) {
 		var autocompletenumber = new Array();
 		$("#contactlist").empty();
