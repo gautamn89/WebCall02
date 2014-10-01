@@ -64,7 +64,7 @@
     <gap:plugin name="org.apache.cordova.network-information"/>
     <gap:plugin name="org.apache.cordova.vibration" />
     <gap:plugin name="org.apache.cordova.statusbar" />
-    <gap:plugin name="org.apache.cordova.storage" />
+    
    
        <!-- <gap:plugin name="com.example.webcall.RecentList" />
 >>>>>>> 13a47b1a1ea90ccbcc65fbc405e9703560fd9531
