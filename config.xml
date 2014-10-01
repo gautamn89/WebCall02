@@ -37,7 +37,7 @@
     <preference name="webviewbounce" value="true" />
     <preference name="prerendered-icon" value="true" />
     <preference name="stay-in-webview" value="false" />
-    <preference name="ios-statusbarstyle" value="default" />
+    <preference name="StatusBarStyle" value="default" />
     <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="StatusBarBackgroundColor" value="#FFFFFF" />
     <preference name="detect-data-types" value="true" />
