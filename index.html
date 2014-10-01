@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <!-- <meta name="format-detection" content="telephone=no" />
 <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" /> -->
-<script src="http://192.168.1.8:8081/target/target-script-min.js"></script>
+<!--  <script src="http://192.168.1.8:8081/target/target-script-min.js"></script>-->
 <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.3.min.css" />
 <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css"> -->
 <script type="text/javascript" src="js/jquery.js"></script>
@@ -17,6 +17,7 @@
 <!--<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>-->
 <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
 <script type="text/javascript" src="js/Calllogs.js"></script>
+<!-- <script type="text/javascript" src="js/cookiejs/jquery.cookie.js"></script> -->
 <!-- <script type="text/javascript" src="webintents.js"></script> -->
 <style type="text/css">
 /** #spinnerdialog {
@@ -86,7 +87,18 @@ display:block;
 
 
 </style>
-<script type="text/javascript"charset="utf-8" >
+
+<script type="text/javascript" charset="utf-8" >
+/**function WriteCookie()
+{
+   
+   document.cookie="test";
+   //window.open("http://192.168.160/~gautam/cookietestformapp.html");
+   
+   this.document.location.href = "http://192.168.160/~gautam/cookietestformapp.html";
+}**/
+
+
 /******************************** This to show spinner *******************************************/
 $(document).on('pagebeforecreate', '[data-role="page"]', function(){ // instead of .on event if we use .one the the following code will ron only one time
 	setTimeout(function(){
@@ -319,7 +331,8 @@ function onDeviceReady() {
 						var filter = ["displayName" , "name" , "phoneNumbers"]; // return contact.displayName field
 						console.log("After setting contact filter");
 						// below line is use to find contacts
-						navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+						 navigator.contacts.find(onContactSuccess, onContactError, filter, options); //this is the new format in phonegap 3.0
+						//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 						console.log("navigator.contacts.find worked");
 					}
 				//}
@@ -439,19 +452,53 @@ function onContactError(contactError) {
 // below function is called when the contact in the contactlist is clicked
 $("#contactlistdiv").on("click", 'a' , function(event){
 		//alert("Contact Selected");
+		
 		event.preventDefault();//this is compulsory for listening dynamically created elements
 		var datastatus = checkConnection();
 			if(datastatus == "0" || datastatus == "1"){
 			alert("No Data Network found");
 		} else {
-		//var hrefvalue = $(this).href; this is not working
+			
 			var userid = localStorage.getItem("userid");
 			var registernumberid = localStorage.getItem("registernumber_id");
 			var domainname = localStorage.getItem("domainname");
 			var destnum = $(this).attr('href').match(/([0-9])/g).join(''); // the match function extracts number put it in an array
+			var boxcall = localStorage.getItem("boxcall");
+			var browsercall = localStorage.getItem("browsercall");
 			console.log("contactlist Div:userid " + userid);
 			console.log("contactlist Div:registernumberid " + registernumberid);
 			console.log("contactlist Div:destnum " + destnum);	
+			console.log("contactlist Div:browser call" + browsercall);
+			
+			//checking if call is to be made from browser
+			
+			if(browsercall == "1"){
+				console.log("contactlist Div:Destination number for browser call " + destnum);
+				if(destnum != null && destnum != ""){
+					
+					var recently_dialed_array = [];
+					var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+					if(recently_dialed_array === null){
+						var recently_dialed_array = [];
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+					} else {
+						if(recently_dialed_array.length > 10){
+							recently_dialed_array.shift(); //this removes the frist element
+							recently_dialed_array.push(destnum);
+							localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+						} else { //if recently dialed size has not reached the limit
+							recently_dialed_array.push(destnum);
+							localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+						}
+					}
+				
+					window.open("http://voip.ownmail.com/browser_call.php?user=1555031898&passwd=3626&dest_num=" +destnum, '_system');
+				}
+			}
+			else {
+			//var hrefvalue = $(this).href; this is not working
+			
 			//alert("contactlist Div:destnum " + destnum);
 			//alert("contactlist Div:registernumberid " + registernumberid);
 			//alert("contactlist Div:userid " + userid);
@@ -473,13 +520,13 @@ $("#contactlistdiv").on("click", 'a' , function(event){
 			}
 			//if((userid.length > 0 && userid != null ) && (registernumberid.length > 0 && registernumberid != null) && (destnum.length > 0 && destnum != null)){
 			//if(!userid && !registernumberid && !destnum) {
-			if(!(userid === null) && !(registernumberid === null) && !(destnum === null ) && !(destnum === null )){
+			if(!(userid === null) && !(registernumberid === null) && !(destnum === null )){
 			//alert("Condition Successful");
 				$.ajax({
 				type: "GET",
 				url: "http://mail.tsim.in/webcall.php",
 				//data: {action: 'call',domains: 'tsim.in',user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
-				data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
+				data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum,box_call: boxcall},
 				cache: false,
 				dataType: 'json',
 				success : function(data){
@@ -507,7 +554,9 @@ $("#contactlistdiv").on("click", 'a' , function(event){
 			}
 			//console.log($('a').index());
 			//console.log($(this).href);
+			}// else closing for browser call
 		}// else closing for network status
+	
 });
 /** $('#contactlist-right-setting-popup').on('popupafteropen', function () {
 //$('#contactlist-right-setting-popup').on('popupbeforeposition', function () {
@@ -532,9 +581,38 @@ $("#calllogslistdiv").on("click", 'a' , function(event){
 		var registernumberid = localStorage.getItem("registernumber_id");
 		var domainname = localStorage.getItem("domainname");
 		var destnum = $(this).attr('href').match(/([0-9])/g).join(''); // the match function extracts number put it in an array
+		var boxcall = localStorage.getItem("boxcall");
+		var browsercall = localStorage.getItem("browsercall");
 		console.log("calllogslist Div:userid " + userid);
 		console.log("calllogslist Div:registernumberid " + registernumberid);
 		console.log("calllogslist Div:destnum " + destnum);
+		console.log("calllogslist Div:browsercall value " + browsercall);
+		
+		if(browsercall == "1"){
+			console.log("calllogslist Div:Destination number for browser call " + destnum);
+			if(destnum != null && destnum != ""){
+				
+				var recently_dialed_array = [];
+				var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+				if(recently_dialed_array === null){
+					var recently_dialed_array = [];
+					recently_dialed_array.push(destnum);
+					localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+				} else {
+					if(recently_dialed_array.length > 10){
+						recently_dialed_array.shift(); //this removes the frist element
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+					} else { //if recently dialed size has not reached the limit
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+					}
+				}
+			
+				window.open("http://voip.ownmail.com/browser_call.php?user=1555031898&passwd=3626&dest_num=" +destnum, '_system');
+			}
+		}
+		else {
 		var recently_dialed_array = [];
 		var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
 		if(recently_dialed_array === null){
@@ -559,7 +637,7 @@ $("#calllogslistdiv").on("click", 'a' , function(event){
 				type: "GET",
 				url: "http://mail.tsim.in/webcall.php",
 				//data: {action: 'call',domains: 'tsim.in',user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
-				data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
+				data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum,box_call: boxcall},
 				cache: false,
 				dataType: 'json',
 				success : function(data){
@@ -587,6 +665,7 @@ $("#calllogslistdiv").on("click", 'a' , function(event){
 		}
 		//console.log($('a').index());
 		//console.log($(this).href);
+		}//else close for browser call
 	}// else closing for network status
 });
 
@@ -600,6 +679,7 @@ $(document).on('click', '#a_contact_retrive', function(){
 	options.multiple=true; // return multiple results
 	var filter = ["displayName" ,"name" ,"phoneNumbers"]; // return contact.displayName field
 	// find contacts
+	//navigator.contacts.find(successCB, errorCB, filter, options) // NOTE THIS IS THE NEW FORMAT FOR CREATING DATABASE FROM PHONE GAP 3.0
 	navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 	function onContactSuccess(contacts) {
 		var autocompletenumber = new Array();
@@ -699,11 +779,42 @@ $(document).on('click', '#a_contact_retrive', function(){
 // BELOW CODE IS WHEN LOGOUT IS CLICKED
 $(document).on("click","#logout", function(){
 	var userid = localStorage.getItem("userid");
+	//below code is to tell the server to remove all the cookies that it has set
+	//navigator.app.loadUrl('http://mail.tsim.in/webcall.php?action=logout');
+	/**$.ajax({
+		type: "GET",
+		url: "http://mail.tsim.in/webcall.php",
+		data: {action: 'logout'},
+		cache: false,
+		dataType: 'json',
+		success : function(data){
+			
+			if (data.result == '0'){
+				console.log("Error: " + data.result_msg);
+				alert(data.result_msg);
+				} else if (data.result == '1'){
+					console.log("Call Status: " + data.result_msg);
+					alert("Cookie deleted" + data.cookiescount);
+					alert(data.result_msg);
+					if(userid != null && userid.length > 0){
+						alert("Login Out");
+						localStorage.clear();
+						$.mobile.changePage("#pageLogin");
+					}
+				}
+			
+		},
+		error: function (data){
+			alert("Unable to connect to server");
+			}
+		});**/
+		
 	if(userid != null && userid.length > 0){
 		alert("Login Out");
 		localStorage.clear();
 		$.mobile.changePage("#pageLogin");
 	}
+	
 });
 
 }); // ondocument ready close
@@ -789,6 +900,7 @@ $(document).on('pagecreate', '#pageLogin', function(){ // login check for first 
 				try {
 					localStorage.setItem("userid", userid);
 					localStorage.setItem("passwd", password);
+					localStorage.setItem("boxcall","1");
 					// below code is to set the credit details
 					console.log("Credit details from login page is " + data.credit);
 					if (data.credit === null || data.credit == '0')
@@ -925,24 +1037,6 @@ $(document).on('pagecreate', '#pageDomainDialog', function(){
 });
 /********************************************** DOMAIN DIALOG PAGE CLOSE **************/
 
-/**$(document).on('pagecreate', '#pageSettings',function(){
-
-alert("Page settings created");
-$("#boxcall").click(function () {
-//$('').attr('checked', this.checked);
-alert("Box call clicked");
-console.log("Box call clicked");
-if(this.attr('checked')){
-localStorage.setItem("boxcall", "1");
-console.log("Box call value set to 1");
-}
-else{
-localStorage.setItem("boxcall", "0");
-console.log("Box call value set to 0");
-}
-});
-
-)};**/
 
 /***************** PAGEDIRECTCALL LOAD STARTS HERE *******************/
 $(document).on('pagecreate', '#pageDirectCall', function(){
@@ -1215,174 +1309,207 @@ alert("Unable to get userid..\n. Please Reload the app by loging out");
 /********************************************************** PAGEONEX CLOSE **************************************************/
 /******************** PAGE SETTINGS ONCREATE EVENT STARTS HERE **************************/
 $(document).on('pagecreate', '#pageSettings', function(){
-console.log("Inside pageonesettings");
-console.log("Inside pageonesettings");
-
-console.log("Inside pageonesettings after deviceready ");
-$( "#sel_settings_register_num" ).change(function() {
-	//alert("select event trriged");
-	console.log("select event trriged");
-	var registernumberid = $(this).val();
-	//alert(" selected caller id" + registernumberid);
-	localStorage.setItem("registernumber_id", registernumberid);
-	console.log("registernumberid Local stored");
-	//alert("registernumberid Local stored");
-});
-
-$("input:checkbox[name=boxcall]").change(function() {
-    if($(this).is(':checked')){
-    	localStorage.setItem("boxcall", "1");
-  		console.log("Box call value set to in onBoxClick 1");
-    }
-    else {
-    	localStorage.setItem("boxcall", "0");
-    	console.log("Box call value set to in onBoxClick 0");
-    	//alert("Box call value set to in onBoxClick 0");
-    }
-});
-
-/**$(".chkbox").click(function(){
-	   alert("locate clicked!");
-	   console.log("Box call clicking event");
-	    //if(!($("#checkbox-1").is(':checked'))){
-	    if($("#checkbox-1").attr('checked')){
-	    alert("Yes");
-	    console.log("Box call clicked event");
+	console.log("Inside pageonesettings");
+	console.log("Inside pageonesettings");
+	
+	console.log("Inside pageonesettings after deviceready ");
+	$( "#sel_settings_register_num" ).change(function() {
+			//alert("select event trriged");
+			console.log("select event trriged");
+			var registernumberid = $(this).val();
+			//alert(" selected caller id" + registernumberid);
+			localStorage.setItem("registernumber_id", registernumberid);
+			console.log("registernumberid Local stored");
+			//alert("registernumberid Local stored");
+	});
+	
+	/** commented becos for checkbox we need to have checked event
+		alert("Page settings created");
+		$("#boxcall").click(function () {
+		//$('').attr('checked', this.checked);
+		alert("Box call clicked");
+		console.log("Box call clicked");
+		if(this.attr('checked')){
+		localStorage.setItem("boxcall", "1");
+		console.log("Box call value set to 1");
+		}
+		else{
+		localStorage.setItem("boxcall", "0");
+		console.log("Box call value set to 0");
+		}
+		});
+	***/
+	
+	$("input:checkbox[name=boxcall]").change(function() {
+	    if($(this).is(':checked')){
+	    	localStorage.setItem("boxcall", "1");
+	  		console.log("Box call value set to 1");
 	    }
 	    else {
-	    alert("No");
-	    console.log("Box call unclicked event");
+	    	localStorage.setItem("boxcall", "0");
+	    	console.log("Box call value set to 0");
+	    	//alert("Box call value set to in onBoxClick 0");
 	    }
 	});
-**/
-/**
-$(document).on("click", "#boxcall", function () {
-	document.addEventListener("deviceready", onBoxClick, false);	
-//$('').attr('checked', this.checked);
-alert("Box call clicked");
-console.log("Box call clicked event");
-});
-
-function onBoxClick() {
-	console.log("inside one clicked");
-	alert("box clicked");
-if(this.attr('checked')){
-localStorage.setItem("boxcall", "1");
-console.log("Box call value set to in onBoxClick 1");
-alert("Box call value set to in onBoxClick 1");
-}
-else{
-localStorage.setItem("boxcall", "0");
-console.log("Box call value set to in onBoxClick 0");
-alert("Box call value set to in onBoxClick 0");
-}
-}
-**/
-
-// BELOW CODE IS TO CONTROL TRANSITION WHEN THE SETTINGS REFRESH BUTTON IS PRESSED //
-$(document).on('click', '#a_refresh', function(){
-	console.log("bt_refresh_test");
-	//alert("bt_retrive_test clicked");
-	var usrl = document.URL ;
-	//alert(usrl);
-	console.log(usrl);
-	$.mobile.changePage("#pageSettings",{
-		allowSamePageTransition : true,
-		transition : 'none',
-		showLoadMsg : true
+	
+	$("input:checkbox[name=browsercall]").change(function() {
+	    if($(this).is(':checked')){
+	    	localStorage.setItem("browsercall", "1");
+	  		console.log("Browser call value set to 1");
+	    }
+	    else {
+	    	localStorage.setItem("browsercall", "0");
+	    	console.log("Browser call value set to 0");
+	    	//alert("Box call value set to in onBoxClick 0");
+	    }
 	});
-});
-
-
-$(document).on('click', '#bt_settings_register_num_retrive', function(){
-	console.log("bt_retrive_test");
-	//alert("bt_retrive_test clicked");
-	document.addEventListener("deviceready", onSettingsRetriveClick, false);
-});// retrive btn close
-function onSettingsRetriveClick(){
-	var datastatus = checkConnection();
-	if(datastatus == "0" || datastatus == "1"){
-		alert("No Data Network found");
-	} else {
-		var userid = localStorage.getItem("userid");
-		if(userid != null){	
-		//$("#spinnerdialog").show();
-		$.ajax({
-			type: "GET",
-			url: "http://mail.tsim.in/webcall.php",
-			data: {action: 'registernumlist',domains : 'tsim.in',user_id : userid},
-			cache: false,
-			dataType: 'json',
-			success : function(data){
-			// $("#sel_register_num").find('option').remove().end();
-			//$("#spinnerdialog").hide();
-			console.log("regsiternumber ");
-			$("#sel_settings_register_num").empty();
-			for (var i in data.numberlist) {
-				var opt = $("<option>");
-				console.log("regsiternumber " + data.numberlist[i].regdnumber);
-				opt.attr("value", data.numberlist[i].regdnumber).text(data.numberlist[i].regdnumber);
-				opt.attr("selected", "selected");
-				if(data.numberlist[i].primnumber == 't'){
+	
+	
+	/**$(".chkbox").click(function(){
+		   alert("locate clicked!");
+		   console.log("Box call clicking event");
+		    //if(!($("#checkbox-1").is(':checked'))){
+		    if($("#checkbox-1").attr('checked')){
+		    alert("Yes");
+		    console.log("Box call clicked event");
+		    }
+		    else {
+		    alert("No");
+		    console.log("Box call unclicked event");
+		    }
+		});
+	**/
+	/**
+	$(document).on("click", "#boxcall", function () {
+		document.addEventListener("deviceready", onBoxClick, false);	
+	//$('').attr('checked', this.checked);
+	alert("Box call clicked");
+	console.log("Box call clicked event");
+	});
+	
+	function onBoxClick() {
+		console.log("inside one clicked");
+		alert("box clicked");
+	if(this.attr('checked')){
+	localStorage.setItem("boxcall", "1");
+	console.log("Box call value set to in onBoxClick 1");
+	alert("Box call value set to in onBoxClick 1");
+	}
+	else{
+	localStorage.setItem("boxcall", "0");
+	console.log("Box call value set to in onBoxClick 0");
+	alert("Box call value set to in onBoxClick 0");
+	}
+	}
+	**/
+	
+	// BELOW CODE IS TO CONTROL TRANSITION WHEN THE SETTINGS REFRESH BUTTON IS PRESSED //
+	$(document).on('click', '#a_refresh', function(){
+		console.log("bt_refresh_test");
+		//alert("bt_retrive_test clicked");
+		var usrl = document.URL ;
+		//alert(usrl);
+		console.log(usrl);
+		$.mobile.changePage("#pageSettings",{
+			allowSamePageTransition : true,
+			transition : 'none',
+			showLoadMsg : true
+		});
+	});
+	
+	
+	$(document).on('click', '#bt_settings_register_num_retrive', function(){
+		console.log("bt_retrive_test");
+		//alert("bt_retrive_test clicked");
+		document.addEventListener("deviceready", onSettingsRetriveClick, false);
+	});// retrive btn close
+	function onSettingsRetriveClick(){
+		var datastatus = checkConnection();
+		if(datastatus == "0" || datastatus == "1"){
+			alert("No Data Network found");
+		} else {
+			var userid = localStorage.getItem("userid");
+			if(userid != null){	
+			//$("#spinnerdialog").show();
+			$.ajax({
+				type: "GET",
+				url: "http://mail.tsim.in/webcall.php",
+				data: {action: 'registernumlist',domains : 'tsim.in',user_id : userid},
+				cache: false,
+				dataType: 'json',
+				success : function(data){
+				// $("#sel_register_num").find('option').remove().end();
+				//$("#spinnerdialog").hide();
+				console.log("regsiternumber ");
+				$("#sel_settings_register_num").empty();
+				for (var i in data.numberlist) {
+					var opt = $("<option>");
+					console.log("regsiternumber " + data.numberlist[i].regdnumber);
+					opt.attr("value", data.numberlist[i].regdnumber).text(data.numberlist[i].regdnumber);
 					opt.attr("selected", "selected");
-					console.log("Page settings registernumberid that is set to true from database is when retive is clicked :" + data.numberlist[i].regdnumber);
-					try {
-						localStorage.setItem("registernumber_id",data.numberlist[i].regdnumber );
-						//alert("registernumberid that is set to that is in database");
+					if(data.numberlist[i].primnumber == 't'){
+						opt.attr("selected", "selected");
+						console.log("Page settings registernumberid that is set to true from database is when retive is clicked :" + data.numberlist[i].regdnumber);
+						try {
+							localStorage.setItem("registernumber_id",data.numberlist[i].regdnumber );
+							//alert("registernumberid that is set to that is in database");
+						}
+						catch (e) {
+						if (e == QUOTA_EXCEEDED_ERR) {
+							console.log("Error: Local Storage limit exceeds.");
+						}
+						else {
+							console.log("Error: Saving to local storage.");
+						}
+						}
 					}
-					catch (e) {
-					if (e == QUOTA_EXCEEDED_ERR) {
-						console.log("Error: Local Storage limit exceeds.");
-					}
-					else {
-						console.log("Error: Saving to local storage.");
-					}
-					}
+					$("#sel_settings_register_num").append(opt);
+					console.log(data.numberlist[i].regdnumber);
+					console.log(data.numberlist[i].primnumber);
+					//alert(data.numberlist[i].regdnumber);
 				}
-				$("#sel_settings_register_num").append(opt);
-				console.log(data.numberlist[i].regdnumber);
-				console.log(data.numberlist[i].primnumber);
-				//alert(data.numberlist[i].regdnumber);
+				//var test = data.numberlist[0].regdnumber;
+				$("#sel_settings_register_num").selectmenu('refresh',true);
+				//alert("Number list updated");
+				console.log("Number list updated");
+				},
+				error: function (data){
+					alert("Unable to connect to server");
+				}
+			});// ajax close for retrive
+			}// if close for userid
+			else {
+				alert("Unable to get username \n Please login ");
 			}
-			//var test = data.numberlist[0].regdnumber;
-			$("#sel_settings_register_num").selectmenu('refresh',true);
-			//alert("Number list updated");
-			console.log("Number list updated");
-			},
-			error: function (data){
-				alert("Unable to connect to server");
-			}
-		});// ajax close for retrive
-		}// if close for userid
-		else {
-			alert("Unable to get username \n Please login ");
-		}
-	}// else close for network stataus
-}// onSettingsRetriveClick
-function checkConnection() {
-  var networkState = null; 
-                   var platform = localStorage.getItem("deviceplatform"); 
-                   if(platform == "Android"){ 
-                	   var networkState = navigator.connection.type; 
-                	   } else if(platform == "iOS") 
-                	   { 
-                		   var networkState = Connection.CELL; 
-                	   }
-
-var states = {};
-states[Connection.UNKNOWN] = '0';
-states[Connection.NONE] = '1';
-states[Connection.CELL_2G] = '2';
-states[Connection.CELL_3G] = '3';
-states[Connection.CELL_4G] = '4';
-states[Connection.ETHERNET] = '6';
-states[Connection.WIFI] = '5';
-return states[networkState];
-}// function checkConnection close
+		}// else close for network stataus
+	}// onSettingsRetriveClick
+	
+	
+	function checkConnection() {
+	  var networkState = null; 
+	                   var platform = localStorage.getItem("deviceplatform"); 
+	                   if(platform == "Android"){ 
+	                	   var networkState = navigator.connection.type; 
+	                	   } else if(platform == "iOS") 
+	                	   { 
+	                		   var networkState = Connection.CELL; 
+	                	   }
+	
+	var states = {};
+	states[Connection.UNKNOWN] = '0';
+	states[Connection.NONE] = '1';
+	states[Connection.CELL_2G] = '2';
+	states[Connection.CELL_3G] = '3';
+	states[Connection.CELL_4G] = '4';
+	states[Connection.ETHERNET] = '6';
+	states[Connection.WIFI] = '5';
+	return states[networkState];
+	}// function checkConnection close
 });// onpageSettings created
 /*********************************************************************************************************/
+ 
+ 
 $(document).on('pagecreate', '#pageRecentlyDialed', function(){
-console.log("Inside pagerecentcontact");
 console.log("Inside pagerecentcontact");
 document.addEventListener("deviceready", onPaddingHeader, false);
 function onPaddingHeader() {
@@ -1408,9 +1535,40 @@ $("#recentlydialedlistdiv").on("click", 'a' , function(event){
 		var domainname = localStorage.getItem("domainname");
 		var boxcall = localStorage.getItem("boxcall");
 		var destnum = $(this).attr('href').match(/([0-9])/g).join(''); // the match function extracts number put it in an array
+		var browsercall = localStorage.getItem("browsercall");
 		console.log("recentlydialedlist Div:userid " + userid);
 		console.log("recentlydialedlist Div:registernumberid " + registernumberid);
 		console.log("recentlydialedlist Div:destnum " + destnum);
+		
+		
+		console.log("recentlydialedlist Div:browser call value " + browsercall);
+		if(browsercall == "1"){
+			console.log("recentlydialedlist Div:Destination number for browser call  " + destnum);
+			if(destnum !== null && destnum != ""){
+				
+				var recently_dialed_array = [];
+				var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+				if(recently_dialed_array === null){
+					var recently_dialed_array = [];
+					recently_dialed_array.push(destnum);
+					localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+				} else {
+					if(recently_dialed_array.length > 10){
+						recently_dialed_array.shift(); //this removes the frist element
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+					} else { //if recently dialed size has not reached the limit
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+					}
+				}
+			
+				window.open("http://voip.ownmail.com/browser_call.php?user=1555031898&passwd=3626&dest_num="+destnum, '_system');
+			}
+		}
+		else {
+		
+		
 		var recently_dialed_array = [];
 		var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array")); // for getting array out of web storage use jason.parse
 		if(recently_dialed_array === null){
@@ -1463,6 +1621,7 @@ $("#recentlydialedlistdiv").on("click", 'a' , function(event){
 		}
 		//console.log($('a').index());
 		//console.log($(this).href);
+	} // else closing for browser call
 	}// else closing for network status
 	}); //recentlydialedlistdiv click event close
 	function checkConnection() {
@@ -1669,104 +1828,132 @@ $(document).on('pagecreate', '#pageDialPad', function(){
 			if( $('#dialednumber').val() == ""){
 				alert("Please Dial an valid number");
 				}else{
-				var datastatus = checkConnection();
-				if(datastatus == "0" || datastatus == "1"){
-				alert("No Data Network found");
+					var datastatus = checkConnection();
+					if(datastatus == "0" || datastatus == "1"){
+					alert("No Data Network found");
 				} else {
-				console.log("test");
-				var userid = localStorage.getItem("userid");
-				var registernumberid = localStorage.getItem("registernumber_id");
-				var domainname = localStorage.getItem("domainname");
-				var boxcall = localStorage.getItem("boxcall");
-				var dest = $('#dialednumber').val();
-				var destnum = $.trim($('#dialednumber').val()); // note when no value is entered the it does not passes null but some garbage so 'destnum !== null' will set to true instead use destnum != ""
-				//alert("userid" + userid);
-				//alert("registernumberid" + registernumberid);
-				//alert("phone_num" + destnum);
-				//alert(dest);
-				console.log("userid" + userid);
-				console.log("registernumberid" + registernumberid);
-				console.log("phone_num" + destnum);
-				console.log("phone_num length" + destnum.length);
-				console.log("phone_num untrim " + dest.length);
-				var recently_dialed_array = [ ]; // this must be outside the if loop i.e inside document load
-				console.log("Recent dialed array " + recently_dialed_array);
-				var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
-				console.log("Recent dialed array content" + recently_dialed_array);
-				console.log("Recent dialed array length" + recently_dialed_array);
-				if(recently_dialed_array === null){
-				var recently_dialed_array = [ ];
-				recently_dialed_array.push(destnum);
-				localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
-				//alert("Recent contact updated");
-				console.log("Recent contact updated");
-				} else {
-				if(recently_dialed_array.length > 10){
-				recently_dialed_array.shift(); //this removes the frist element
-				recently_dialed_array.push(destnum);
-				localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
-				//alert("Recent contact updated");
-				console.log("Recent contact updated");
-				} else { //if recently dialed size has not reached the limit
-				recently_dialed_array.push(destnum);
-				localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
-				//alert("Recent contact updated");
-				console.log("Recent contact updated");
-				}
-				}
-				//if((userid.length > 0 && userid !== null) && (registernumberid.length > 0 && registernumberid !== null) && (destnum.length > 0 && destnum != "")){
-				if(!(userid === null) && !(registernumberid === null) && (destnum.length > 0 && destnum != "") && !(domainname === null)){
-				//if(!(userid === null) && !(registernumberid === null) && !(destnum === null )) {
-				$.ajax({
-				type: "GET",
-				url: "http://mail.tsim.in/webcall.php",
-				//data: {action: 'call',domains: 'tsim.in',user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
-				data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum,box_call: boxcall},
-				cache: false,
-				dataType: 'json',
-				success : function(data){
-				////$("#loaderdialog").html("done");
-				if (data.credit == null || data.credit == '0')
-				localStorage.setItem("credit_details", "0.0");
-				else
-				localStorage.setItem("credit_details",parseFloat(data.credit).toFixed(2));
-				if (data.result == '0'){
-				console.log("Error: " + data.result_msg);
-				//$('label[for=Call_status]').css({backgroundColor:'#cfc'});
-				//$("#Call_status").text(data.result_msg);
-				alert(data.result_msg);
-				} else if (data.result == '1'){
-				console.log("Call Status: " + data.result_msg);
-				//$('label[for=Call_status]').css({backgroundColor:'#cfc'});
-				//$("#Call_status").text(data.result_msg);
-				alert(data.result_msg);
-				}
-				},
-				error: function (data){
-				alert("Unable to connect to server");
-				}
-				});
-				} else {
-				if(userid === null || userid.length == 0){
-				alert("User Id not set");
-				console.log("User Id not set");
-				//$("#Call_status").text("User Id not set");
-				} else if (registernumberid === null ||registernumberid.length == 0){
-				alert("Please set registernumberid in account details");
-				console.log("Please set registernumberid in account details");
-				//$("#Call_status").text("Please set registernumberid");
-				} else if (destnum === null || destnum.length == 0 || destnum == ""){
-				alert("Destitation number not set");
-				console.log("Destitation number not set");
-				//$("#Call_status").text("Enter Caller number");
-				} else {
-				alert("Cannot Make Call Insufficient parameters");
-				console.log("Cannot Make Call Insufficient parameters");
-				//$("#Call_status").text("Insufficient parameters");
-				}
-				}
+					console.log("test");
+					var userid = localStorage.getItem("userid");
+					var registernumberid = localStorage.getItem("registernumber_id");
+					var domainname = localStorage.getItem("domainname");
+					var boxcall = localStorage.getItem("boxcall");
+					var dest = $('#dialednumber').val();
+					var destnum = $.trim($('#dialednumber').val()); // note when no value is entered the it does not passes null but some garbage so 'destnum !== null' will set to true instead use destnum != ""
+					//alert("userid" + userid);
+					//alert("registernumberid" + registernumberid);
+					//alert("phone_num" + destnum);
+					//alert(dest);
+					console.log("DialPad:userid" + userid);
+					console.log("DialPad:registernumberid" + registernumberid);
+					console.log("DialPad:phone_num" + destnum);
+					console.log("DialPad:phone_num length" + destnum.length);
+					console.log("DialPad:phone_num untrim " + dest.length);
+
+					//checking if call is to be made from browser
+					var browsercall = localStorage.getItem("browsercall");
+					console.log("DialPad:browser call value " + browsercall);
+					if(browsercall == "1"){
+						console.log("DialPad:Destination number for browser call  " + destnum);
+						if(destnum !== null && destnum != ""){ 
+							
+							var recently_dialed_array = [];
+							var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+							if(recently_dialed_array === null){
+								var recently_dialed_array = [];
+								recently_dialed_array.push(destnum);
+								localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+							} else {
+								if(recently_dialed_array.length > 10){
+									recently_dialed_array.shift(); //this removes the frist element
+									recently_dialed_array.push(destnum);
+									localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+								} else { //if recently dialed size has not reached the limit
+									recently_dialed_array.push(destnum);
+									localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+								}
+							}
+						
+							window.open("http://voip.ownmail.com/browser_call.php?user=1555031898&passwd=3626&dest_num="+destnum, '_system');
+						}
+					}
+					else {
+					
+					var recently_dialed_array = [ ]; // this must be outside the if loop i.e inside document load
+					var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+					if(recently_dialed_array === null){
+						var recently_dialed_array = [ ];
+						recently_dialed_array.push(destnum);
+						localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+						//alert("Recent contact updated");
+						console.log("Recent contact updated");
+					} else {
+						if(recently_dialed_array.length > 10){
+							recently_dialed_array.shift(); //this removes the frist element
+							recently_dialed_array.push(destnum);
+							localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+							//alert("Recent contact updated");
+							console.log("Recent contact updated");
+						} else { //if recently dialed size has not reached the limit
+							recently_dialed_array.push(destnum);
+							localStorage.setItem("recently_dialed_array",JSON.stringify(recently_dialed_array));
+							//alert("Recent contact updated");
+							console.log("Recent contact updated");
+						}
+					}
+					//if((userid.length > 0 && userid !== null) && (registernumberid.length > 0 && registernumberid !== null) && (destnum.length > 0 && destnum != "")){
+					if(!(userid === null) && !(registernumberid === null) && (destnum.length > 0 && destnum != "") && !(domainname === null)){
+						//if(!(userid === null) && !(registernumberid === null) && !(destnum === null )) {
+						$.ajax({
+						type: "GET",
+						url: "http://mail.tsim.in/webcall.php",
+						//data: {action: 'call',domains: 'tsim.in',user_id: userid,registernumber_id: registernumberid,dest_num: destnum},
+						data: {action: 'call',domains: domainname,user_id: userid,registernumber_id: registernumberid,dest_num: destnum,box_call: boxcall},
+						cache: false,
+						dataType: 'json',
+						success : function(data){
+						////$("#loaderdialog").html("done");
+						if (data.credit == null || data.credit == '0')
+							localStorage.setItem("credit_details", "0.0");
+						else
+							localStorage.setItem("credit_details",parseFloat(data.credit).toFixed(2));
+						if (data.result == '0'){
+							console.log("Error: " + data.result_msg);
+							//$('label[for=Call_status]').css({backgroundColor:'#cfc'});
+							//$("#Call_status").text(data.result_msg);
+							alert(data.result_msg);
+						} else if (data.result == '1'){
+							console.log("Call Status: " + data.result_msg);
+							//$('label[for=Call_status]').css({backgroundColor:'#cfc'});
+							//$("#Call_status").text(data.result_msg);
+							alert(data.result_msg);
+						}
+						},
+						error: function (data){
+						alert("Unable to connect to server");
+						}
+						});
+					} else {
+						if(userid === null || userid.length == 0){
+							alert("User Id not set");
+							console.log("User Id not set");
+							//$("#Call_status").text("User Id not set");
+						} else if (registernumberid === null ||registernumberid.length == 0){
+							alert("Please set registernumberid in account details");
+							console.log("Please set registernumberid in account details");
+							//$("#Call_status").text("Please set registernumberid");
+						} else if (destnum === null || destnum.length == 0 || destnum == ""){
+							alert("Destitation number not set");
+							console.log("Destitation number not set");
+							//$("#Call_status").text("Enter Caller number");
+						} else {
+							alert("Cannot Make Call Insufficient parameters");
+							console.log("Cannot Make Call Insufficient parameters");
+							//$("#Call_status").text("Insufficient parameters");
+						}
+					}
+				}// browser calling close
 				}// else close for network staus
-				}// dialed number check close
+			}// dialed number check close
 		
 			
 			
@@ -1971,8 +2158,8 @@ $(document).on('pagecreate', '#pageDialPad', function(){
 
 $(document).on('pagecreate', '#pageCalleridSettings', function(){
 	
-	// below condition is to check if callerid is already loaded in web storage
-	if(localStorage.getItem("calleridloaded") == "Yes"){
+	// below condition is to check if callerid is already loaded in web storage and not changed
+	if(localStorage.getItem("calleridloaded") == "Yes" && localStorage.getItem("calleridarraychanged") == "No"){
 		console.log("Callerid list loading from webstorage");
 		var calleridarray = JSON.parse(localStorage.getItem("calleridarray"));
 		console.log("calleridrarray length" + calleridarray[0].length);
@@ -2070,6 +2257,7 @@ $(document).on('pagecreate', '#pageCalleridSettings', function(){
 					calleridarray.push(data.calleridlist);
 					localStorage.setItem("calleridarray", JSON.stringify(calleridarray));
 					localStorage.setItem("calleridloaded", "Yes");
+					localStorage.setItem("calleridarraychanged", "No");
 					console.log("calleridarray stored in database");
 					$("#outgoingcalleridlist").empty();
 					
@@ -2173,6 +2361,7 @@ $(document).on('pagecreate', '#pageCalleridSettings', function(){
 					calleridarray.push(data.calleridlist);
 					localStorage.setItem("calleridarray", JSON.stringify(calleridarray));
 					localStorage.setItem("calleridloaded", "Yes");
+					localStorage.setItem("calleridarraychanged", "No");
 					console.log("calleridarray stored in database");
 					$("#outgoingcalleridlist").empty();
 					
@@ -2246,7 +2435,7 @@ $(document).on('pagecreate', '#pageCalleridSettings', function(){
 		
 		console.log("callerid delete click");
 		event.preventDefault();
-		alert("delete entry clicked");
+		//alert("delete entry clicked");
 		var delnumber = $(this).attr('href');
 		var userid = localStorage.getItem("userid");
 		var domainname = localStorage.getItem("domainname");
@@ -2267,6 +2456,7 @@ $(document).on('pagecreate', '#pageCalleridSettings', function(){
 						} else if (data.result == '1'){
 							console.log("Call Status: " + data.result_msg);
 							alert(data.result_msg);
+							localStorage.setItem("calleridarraychanged", "Yes");
 						}
 					
 				},
@@ -2295,66 +2485,216 @@ $(document).on('pagecreate', '#pageCalleridSettings', function(){
 
 $(document).on('pagecreate', '#pageAddCallerid', function (){
 	
+	$( "#seldestination" ).change(function() {
+		//alert("select event trriged");
+		console.log("select event trriged");
+		var seldestinationvalue = $(this).val();
+		
+		console.log("destination type is" + seldestinationvalue);
+		if(seldestinationvalue == 'specific'){
+			//$("#specificdestinationfield").style.display = "block";
+			$('#countrycodefieldcontain').hide();
+			$('#destinationfieldcontain').show();
+		} else if (seldestinationvalue == 'all'){
+			$('#newcalleridcountrycode').val("");
+			$('#newcalleriddestination').val("");
+			
+			$('#destinationfieldcontain').hide();
+			$('#countrycodefieldcontain').hide();
+		} else if (seldestinationvalue == 'cc')
+		{
+			$('#destinationfieldcontain').hide();
+			$('#countrycodefieldcontain').show();
+		}
+		//alert("registernumberid Local stored");
+	});
+
+	
+	
 	$(document).on('click', '#lg_callerid_submit', function() {
 		console.log("Add callerid Submit click");
 		
-		var newcallerid = $('#newcallerid').val();
-		var newdestination = $('#newcalleriddestination').val();
+		var seldestinationvalue = $("#seldestination").val();
 		var userid = localStorage.getItem("userid");
 		var domainname = localStorage.getItem("domainname");
 		
-		if(userid !== null || domainname !== null || newcallerid !== null || newdestination !== null || newcallerid == "" || newdestination == ""){
+		console.log("destination type is " + seldestinationvalue);
+		if(seldestinationvalue == 'specific'){
+			//$("#specificdestinationfield").style.display = "block";
+			var newcallerid = $('#newcallerid').val();
+			var newdestination = $('#newcalleriddestination').val();
 			
-			var calleridlength = newcallerid.length;
-			var calleridstartnum = newcallerid.substring(0, 3);
-			
-			if(calleridlength < 7 || calleridlength > 15)
-			{
-				alert("Invalid Length of callerid");				
-			}
-			else if (!$.isNumeric(newcallerid)){
-				alert("Caller-id set should be numeric");
-			}
-			else if (calleridstartnum == "000" || calleridstartnum == "111" || calleridstartnum == "123"){
-				alert("Invalid Callerid");	
-			}
-			else { 
-			$.ajax({
-				type: "GET",
-				url: "http://mail.tsim.in/webcall.php",
-				data: {action: 'addcallerid',domains: domainname,user_id: userid,new_destination: newdestination,new_callerid: newcallerid},
-				cache: false,
-				dataType: 'json',
-				success : function(data){
-					
-					if (data.result == '0'){
-						console.log("Error: " + data.result_msg);
-						alert(data.result_msg);
-						} else if (data.result == '1'){
-							console.log("Call Status: " + data.result_msg);
+						
+			if(userid !== null || domainname !== null || newcallerid !== null || newdestination !== null || newcallerid == "" || newdestination == ""){
+				
+				var calleridlength = newcallerid.length;
+				var calleridstartnum = newcallerid.substring(0, 3);
+				
+				if(calleridlength < 7 || calleridlength > 15)
+				{
+					alert("Invalid Length of callerid");				
+				}
+				else if (!$.isNumeric(newcallerid)){
+					alert("Caller-id set should be numeric");
+				}
+				else if (calleridstartnum == "000" || calleridstartnum == "111" || calleridstartnum == "123"){
+					alert("Invalid Callerid");	
+				}
+				else { 
+				$.ajax({
+					type: "GET",
+					url: "http://mail.tsim.in/webcall.php",
+					data: {action: 'addcallerid',domains: domainname,user_id: userid,new_destination: newdestination,new_callerid: newcallerid},
+					cache: false,
+					dataType: 'json',
+					success : function(data){
+						
+						if (data.result == '0'){
+							console.log("Error: " + data.result_msg);
 							alert(data.result_msg);
+							} else if (data.result == '1'){
+								console.log("Call Status: " + data.result_msg);
+								alert(data.result_msg);
+								localStorage.setItem("calleridarraychanged", "Yes");
+								$.mobile.changePage($("#pageCalleridSettings"), { transition : "slide"});
+							}
+						
+					},
+					error: function (data){
+						alert("Unable to connect to server");
 						}
-					
-				},
-				error: function (data){
-					alert("Unable to connect to server");
-					}
-				});
-			}// else close for checking callerid 
+					});
+				}// else close for checking callerid 
+				
+			} else {
+				
+				if (newcallerid === null || newcallerid == "")
+					alert("Please enter callerid");
+				else if (newdestination === null || newdestination == "")
+					alert("Please enter destination number");
+				else
+					alert("Unable to get parameters.\nPlease relogin");
+			}
 			
-		} else {
 			
-			if (newcallerid === null || newcallerid == "")
-				alert("Please enter callerid");
-			else if (newdestination === null || newdestination == "")
-				alert("Please enter destination number");
-			else
-				alert("Unable to get parameters.\nPlease relogin");
-		}
+		} else if (seldestinationvalue == 'all'){
+			
+			var newcallerid = $('#newcallerid').val();
+									
+			if(userid !== null || domainname !== null || newcallerid !== null || newcallerid == ""){
+				
+				var calleridlength = newcallerid.length;
+				var calleridstartnum = newcallerid.substring(0, 3);
+				
+				if(calleridlength < 7 || calleridlength > 15)
+				{
+					alert("Invalid Length of callerid");				
+				}
+				else if (!$.isNumeric(newcallerid)){
+					alert("Caller-id set should be numeric");
+				}
+				else if (calleridstartnum == "000" || calleridstartnum == "111" || calleridstartnum == "123"){
+					alert("Invalid Callerid");	
+				}
+				else { 
+				$.ajax({
+					type: "GET",
+					url: "http://mail.tsim.in/webcall.php",
+					data: {action: 'addcallerid',domains: domainname,user_id: userid,new_destination: 'all',new_callerid: newcallerid},
+					cache: false,
+					dataType: 'json',
+					success : function(data){
+						
+						if (data.result == '0'){
+							console.log("Error: " + data.result_msg);
+							alert(data.result_msg);
+							} else if (data.result == '1'){
+								console.log("Call Status: " + data.result_msg);
+								alert(data.result_msg);
+								localStorage.setItem("calleridarraychanged", "Yes");
+								$.mobile.changePage($("#pageCalleridSettings"), { transition : "slide"});
+							}
+						
+					},
+					error: function (data){
+						alert("Unable to connect to server");
+						}
+					});
+				}// else close for checking callerid 
+				
+			} else {
+				
+				if (newcallerid === null || newcallerid == "")
+					alert("Please enter callerid");
+				else
+					alert("Unable to get parameters.\nPlease relogin");
+			}
+
+			
+		} 
+		else if (seldestinationvalue == 'cc')
+		{
+			var newcallerid = $('#newcallerid').val();
+			var newcountrycode = $('#newcalleridcountrycode').val();
+			
+						
+			if(userid !== null || domainname !== null || newcallerid !== null || newcountrycode !== null || newcallerid == "" || newcountrycode == ""){
+				
+				var calleridlength = newcallerid.length;
+				var calleridstartnum = newcallerid.substring(0, 3);
+				
+				if(calleridlength < 7 || calleridlength > 15)
+				{
+					alert("Invalid Length of callerid");				
+				}
+				else if (!$.isNumeric(newcallerid)){
+					alert("Caller-id set should be numeric");
+				}
+				else if (calleridstartnum == "000" || calleridstartnum == "111" || calleridstartnum == "123"){
+					alert("Invalid Callerid");	
+				}
+				else { 
+				$.ajax({
+					type: "GET",
+					url: "http://mail.tsim.in/webcall.php",
+					data: {action: 'addcallerid',domains: domainname,user_id: userid,new_destination: newcountrycode,new_callerid: newcallerid},
+					cache: false,
+					dataType: 'json',
+					success : function(data){
+						
+						if (data.result == '0'){
+							console.log("Error: " + data.result_msg);
+							alert(data.result_msg);
+							} else if (data.result == '1'){
+								console.log("Call Status: " + data.result_msg);
+								alert(data.result_msg);
+								localStorage.setItem("calleridarraychanged", "Yes");
+								$.mobile.changePage($("#pageCalleridSettings"), { transition : "slide"});
+							}
+						
+					},
+					error: function (data){
+						alert("Unable to connect to server");
+						}
+					});
+				}// else close for checking callerid 
+				
+			} else {
+				
+				if (newcallerid === null || newcallerid == "")
+					alert("Please enter callerid");
+				else if (newcountrycode === null || newcountrycode == "")
+					alert("Please enter country code");
+				else
+					alert("Unable to get parameters.\nPlease relogin");
+			}
+			
+			
+		} // seldestination close
 		
-	});
+	}); //lg_callerid_submit close
 	
-});
+});// pageAddCallerid close
 
 
 
@@ -2467,16 +2807,25 @@ $(document).on('pagecontainershow', function (e, ui) {
 			
 			var boxcall = localStorage.getItem("boxcall");
 			
-			if(boxcall === null || boxcall == "1"){
+			if(boxcall !== null && boxcall == "1"){
 				console.log("box  setting show call checked");
-				$("#boxcall").attr("checked","checked");
+				$("#boxcall").attr("checked",true).checkboxradio('refresh');
 			}
 			else{
-				$("#boxcall").removeAttr("checked");
+				$("#boxcall").removeAttr("checked").checkboxradio('refresh');
 				console.log("box setting show call unchecked");
 			}
 			
+		var browsercall = localStorage.getItem("browsercall");
 			
+			if(browsercall !== null  && browsercall == "1"){
+				console.log("browser setting show call checked");
+				$("#browsercall").attr("checked",true).checkboxradio('refresh');
+			}
+			else{
+				$("#browsercall").removeAttr("checked").checkboxradio('refresh');
+				console.log("box setting show call unchecked");
+			}
 			
 		
 		}// function PageReady close
@@ -2503,37 +2852,38 @@ $(document).on('pagecontainershow', function (e, ui) {
 		}// function checkConnection close
 	} // if close for pageSettings check event
 	else if (ThisPage == "pageRecentlyDialed"){
-	console.log("In Recent Contact List");
-	var recently_dialed_array = [];
-	var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
-	console.log("recently dialed array= " + recently_dialed_array);
-	//console.log("recently dialed array2= " + recently_dialed_array[0]); // this causes un caught error
-	if(recently_dialed_array === null){
-	$("#recentdialedlistdiv").html("No Recent Contact");
-	}else {
-	var recently_dialed = recently_dialed_array.reverse(); // so that the recently dialed number must be showw at the top
-	$("#recentlydialedlist").empty();
-	//below code is to populate le list with the recently dialed list
-	for (var i in recently_dialed_array){
-	var li = $("<li>");
-	var licls = $("</li>");
-	var a = $("<a>");
-	var acls = $("</a>");
-	a.attr("id", recently_dialed[i]).text(recently_dialed[i]);
-	a.attr("href", recently_dialed[i]);
-	$("#recentlydialedlist").append(li)
-	li.append(a); //apended to li becos we want anchor tag inside tthe list
-	li.append(acls);
-	$("#recentlydialedlist").append(licls);
-	$("#recentlydialedlist").listview('refresh');
-	}
-	recently_dialed_array.reverse(); // so that the shift() function called if size of recently_dialed_array increases by 10 will
-	//will remove the leat recent value
-	}
+		console.log("In Recent Contact List");
+		var recently_dialed_array = [];
+		var recently_dialed_array = JSON.parse(localStorage.getItem("recently_dialed_array"));
+		console.log("recently dialed array= " + recently_dialed_array);
+		//console.log("recently dialed array2= " + recently_dialed_array[0]); // this causes un caught error
+		if(recently_dialed_array === null){
+			$("#recentdialedlistdiv").html("No Recent Contact");
+		}else {
+			var recently_dialed = recently_dialed_array.reverse(); // so that the recently dialed number must be showw at the top
+			$("#recentlydialedlist").empty();
+			//below code is to populate le list with the recently dialed list
+			for (var i in recently_dialed_array){
+				var li = $("<li>");
+				var licls = $("</li>");
+				var a = $("<a>");
+				var acls = $("</a>");
+				a.attr("id", recently_dialed[i]).text(recently_dialed[i]);
+				a.attr("href", recently_dialed[i]);
+				$("#recentlydialedlist").append(li)
+				li.append(a); //apended to li becos we want anchor tag inside tthe list
+				li.append(acls);
+				$("#recentlydialedlist").append(licls);
+				$("#recentlydialedlist").listview('refresh');
+			}
+			recently_dialed_array.reverse(); // so that the shift() function called if size of recently_dialed_array increases by 10 will
+			//will remove the leat recent value
+		}
 	}
 	else if (ThisPage == "pageContactList"){
 		
 		// below code was added for addind margin for ios but didnt work
+		console.log(" Page contactlist Adding margin to the header");
 		if (device.platform === 'iOS' && parseFloat(device.version) >= 7.0) {
 				console.log(" Page contactlist Adding margin to the header");
 			//alert("Adding margin");
@@ -2547,7 +2897,114 @@ $(document).on('pagecontainershow', function (e, ui) {
 	//below code is to set the register number previously set by user
 	no need to add here as already added in pageshowevent
 	***/
-	}
+	} // pageContactlist show close
+	else if (ThisPage == "pageCalleridSettings"){
+		// this condition is to load the latest callerid list if it is changed
+		console.log("Callerid page show event");
+		if (localStorage.getItem("calleridarraychanged") == "Yes"){
+			console.log("Callerid page show event: callerid was changes changed");
+		
+			var userid = localStorage.getItem("userid");
+			var domainname = localStorage.getItem("domainname");
+			
+			if(userid !== null || domainname !== null){
+				console.log("Callerid page show event before sending ajax request");
+				$.ajax({
+					type: "GET",
+					url: "http://mail.tsim.in/webcall.php",
+					data: {action: 'callerid',domains: domainname,user_id: userid},
+					cache: false,
+					dataType: 'json',
+					success : function(data){
+					
+					if (data.result == '0'){
+						console.log("Error: " + data.result_msg);
+						alert(data.result_msg);
+					} else if (data.result == '2'){
+						console.log("Error: " + data.result_msg);
+						alert(data.result_msg);
+						$("#outgoingcalleridlist").empty();
+						$("#outgoingcalleridlist").append("<li><center><a href='#pageAddCallerid'>Add Callerid</a></center></li>");
+						$("#outgoingcalleridlist").listview('refresh');
+						
+					}else if (data.result == '1'){
+						console.log("Call Status: " + data.result_msg);
+						//alert(data.result_msg);
+						
+						
+						var calleridarray = [];
+						calleridarray.push(data.calleridlist);
+						localStorage.setItem("calleridarray", JSON.stringify(calleridarray));
+						localStorage.setItem("calleridloaded", "Yes");
+						localStorage.setItem("calleridarraychanged", "No");
+						console.log("Callerid page show event: calleridarray stored in database");
+						$("#outgoingcalleridlist").empty();
+						
+						var li = $("<li></li>");
+						var licls = $("</li>");
+						var a = $("<a></a>");
+						var acls = $("</a>");
+						var divblocka = $('<div class="ui-block-a" style="width:20%"></div>');
+						var divblockb = $('<div class="ui-block-b" style="width:50%"></div>');
+						var divblockc = $('<div class="ui-block-c" style="width:10%"></div>');
+						var griddiv = $('<div class="ui-grid-b"></div>');
+						var divcls = $('</div>');
+						
+						divblocka.text("Destn");
+						divblockb.text("Caller-id");
+						divblockc.text("Action");
+						griddiv.append(divblocka); //apended to li becos we want anchor tag inside tthe list
+						griddiv.append(divblockb);
+						griddiv.append(divblockc);
+						li.append(griddiv); 
+						$("#outgoingcalleridlist").append(li);
+						$("#outgoingcalleridlist").listview('refresh');
+						// below condition is setting the callerid when refresh button is clicked
+							for (var i in data.calleridlist) {
+								console.log("destinationnumber " + data.calleridlist[i].destination);
+								console.log("callerid" + data.calleridlist[i].callerid);
+								var href = data.calleridlist[i].destination;
+								var li = $("<li></li>");
+								var licls = $("</li>");
+								var a = $("<a></a>");
+								var acls = $("</a>");
+								var divblocka = $('<div class="ui-block-a" style="width:20%"></div>');
+								var divblockb = $('<div class="ui-block-b" style="width:50%"></div>');
+								var divblockc = $('<div class="ui-block-c" style="width:10%"></div>');
+								var griddiv = $('<div class="ui-grid-b"></div>');
+								var divcls = $('</div>');
+								
+								a.attr("id", "delcallerid");
+						
+								a.attr("href", href);
+								a.attr("value","Delete");
+								a.text("Delete");
+								$("#outgoingcalleridlist").append(li)
+								divblocka.text(data.calleridlist[i].destination);
+								divblockb.text(data.calleridlist[i].callerid);
+								divblockc.append(a);
+								griddiv.append(divblocka); //apended to li becos we want anchor tag inside tthe list
+								griddiv.append(divblockb);
+								griddiv.append(divblockc);
+								li.append(griddiv); 
+								$("#outgoingcalleridlist").listview('refresh');
+								//localStorage.setItem("autocompletenumberlist",JSON.stringify(autocompletenumber));
+							}
+							$("#outgoingcalleridlist").append("<li><center><a href='#pageAddCallerid'>Add Callerid</a></center></li>");
+							$("#outgoingcalleridlist").listview('refresh');
+						}
+					},
+					error: function (data){
+						alert("Unable to connect to server");
+					}
+					});
+			} else {
+				alert("Unable to get details\n Please relogin..");	
+			}
+			
+		}
+		
+	}// pageCalleridSettings close
 }); // onpageSettings show close
 
 // Respond to back/forward navigation
@@ -2571,6 +3028,45 @@ $( window ).on( "navigate", function( event, data ){
 		}
 } 
 });
+/**
+$(document).on('pagecreate', '#pageTest', function(){
+	
+	var userid = localStorage.getItem("userid");
+	var domainname = localStorage.getItem("domainname");
+	var password = localStorage.getItem("passwd");
+	
+	//navigator.app.loadUrl('http://mail.tsim.in/webcall.php?action=cookietest&domains=' + domainname + '&user_id=' + userid +'&passwd=' + password);
+	navigator.app.loadUrl('http://192.168.1.160/~gautam/cookieswithphp.php');
+	/**$.ajax({ type: "GET",
+			url: "http://192.168.1.160/~gautam/cookieswithphp.php", //http://mail.tsim.in/webcall.php",
+			cache: false,
+			dataType: 'json',
+			success : function(data){
+				for(var i in data){
+				alert(data[i]);
+				}
+			},
+			error: function (data){
+				alert("Unable to connect to server");
+				}
+			});
+	
+});
+**/
+
+/**
+$(document).on('pagecreate', '#pageTest2', function(){
+	
+	//var userid = localStorage.getItem("userid");
+	//var domainname = localStorage.getItem("domainname");
+	//var password = localStorage.getItem("passwd");
+	
+	//navigator.app.loadUrl('http://mail.tsim.in/webcall.php?action=cookieforsite');
+	window.open("http://voip.ownmail.com/browser_call.php?user=1555031898&passwd=3626&dest_num=919594787931", '_system');
+	
+});
+**/
+
 </script>
 </head>
 <body>
@@ -2691,7 +3187,9 @@ $( window ).on( "navigate", function( event, data ){
 				<li><a href="#pageCallLogs">Call Logs</a></li> -->
 				<li data-role="list-divider">Settings</li>
 				<li><a href="#pageSettings">Account Details</a></li>
-				<li><a href="#pageCalleridSettings">Callerid settings</a>
+				<li><a href="#pageCalleridSettings">Callerid settings</a></li>
+				<!-- <li><a href="#pageTest">cookietest</a>
+				<li><a href="#pageTest2">cookietest2</a>
 				<!-- <li><a href="#pageDialPad">Dial</a></li> -->
 				<li><a id="logout" href="#">Logout</a></li>
 			</ul>
@@ -2761,8 +3259,14 @@ $( window ).on( "navigate", function( event, data ){
 		<input type="checkbox" name="box_call" id="boxcall" style="display: block; float:right; ">
 		</div>-->
 		<div data-role="fieldcontain" style="overflow: hidden;">
+		<p> Select this option to set the callerid according to the destination.For more information go to the Callerid options </p>
 			<label for="boxcall" class="box_call"  data-iconpos="right">Intelligent CallerID:</label>
 		        <input type="checkbox" name="boxcall" id="boxcall"/>
+		</div>
+		<div data-role="fieldcontain" style="overflow: hidden;">
+		<p> Select this option to make the calls from web browser</p>
+			<label for="browsercall" class="browser_call"  data-iconpos="right">Browser Call:</label>
+		        <input type="checkbox" name="browsercall" id="browsercall"/>
 		</div>
 			<!-- <div data-role="panel" id="settings-right-setting-panel" data-position="right" data-display="overlay" data-position-fixed="true" >
 			<h2>Settings</h2>
@@ -2796,7 +3300,7 @@ $( window ).on( "navigate", function( event, data ){
 				<ul id="menulist" data-role="listview" data-inset="true" data-theme="b" >
 				<li data-role="list-divider">Settings</li>
 				<li><a href="#pageSettings">Account Details</a></li>
-				<li><a href="#pageCalleridSettings">Callerid settings</a>
+				<li><a href="#pageCalleridSettings">Callerid settings</a></li>
 				<li><a id="logout" href="#">Logout</a></li>
 			</ul>
 			</div>
@@ -2833,7 +3337,7 @@ $( window ).on( "navigate", function( event, data ){
 			<ul id="menulist" data-role="listview" data-inset="false" data-theme="b" >
 				<li data-role="list-divider">Settings</li>
 				<li><a href="#pageSettings">Account Details</a></li>
-				<li><a href="#pageCalleridSettings">Callerid settings</a>
+				<li><a href="#pageCalleridSettings">Callerid settings</a></li>
 				<li><a id="logout" href="#">Logout</a></li>
 			</ul>
 		</div>
@@ -3045,13 +3549,26 @@ $( window ).on( "navigate", function( event, data ){
 		<a id="a_add_callerid_refresh" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-right ui-icon-refresh ui-btn-icon-notext" data-role="button" title="Menu">Refresh</a>
 	</div>
 	<div data-role="main" class="ui-content" >
-		<div data-role="fieldcontain">
+	<p>Please select the type of destination and the corresponding callerid that you want to send</p>
+	<div data-role="fieldcontain">
+		<select name="seldestination" id="seldestination" >
+            <option data-placeholder="true" value="Choose desination type..">Choose desination type..</option>
+            <option value="ALL">Default</option>
+            <option value="cc">Country Code</option>
+            <option value="specific">Specific number</option>
+        </select>
+    </div>
+    	<div data-role="fieldcontain" id="countrycodefieldcontain" style = "display:none">
+			<label for="Calleridcountrycode">Country Code:</label>
+			<input type="text" name="newcalleridcountrycode" id="newcalleridcountrycode" placeholder="Countrycode without '+' " maxlength="2"/>
+		</div>
+		<div data-role="fieldcontain" id="destinationfieldcontain" style = "display:none">
 			<label for="Calleriddestination">Destination:</label>
-			<input type="text" name="newcalleriddestination" id="newcalleriddestination" maxlength="100"/>
+			<input type="text" name="newcalleriddestination" id="newcalleriddestination" placeholder="Destination without '+'" maxlength="14"/>
 		</div>
 		<div data-role="fieldcontain">
 			<label for="Callerid">Callerid:</label>
-			<input type="text" name="newcallerid" id="newcallerid" placeholder="Countrycode and without '+' " maxlength="100"  />
+			<input type="text" name="newcallerid" id="newcallerid" placeholder="Number without '+' " maxlength="100"  />
 		</div>
 	</div>
 	<div data-role="footer" align="right">
@@ -3062,5 +3579,29 @@ $( window ).on( "navigate", function( event, data ){
 	</div>
 </div>
 
+<!--  
+<div data-role="page" id="pageTest" data-title="WebView test">
+<div data-role="header" data-position="fixed">
+<a id="webview_back" href="#" data-rel="back" class="ui-btn ui-shadow ui-btn-left ui-corner-all ui-btn-icon-notext ui-icon-carat-l">Back</a>
+		<h1>WebView Testing</h1>
+		<a id="a_webview_refresh" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-right ui-icon-refresh ui-btn-icon-notext" data-role="button" title="Menu">Refresh</a>
+</div>
+	<div data-role="main" class="ui-content" >
+	<input type="button" value="Set Cookie" onclick="WriteCookie();"/>
+	<!-- <a id="webviewurl1" name="webviewurl1" href="http://192.168.1.160/~gautam/cookietestformapp.html">Load desktop site</a> 
+	</div>
+</div>-->
+<!--
+<div data-role="page" id="pageTest2" data-title="WebView test">
+<div data-role="header" data-position="fixed">
+<a id="webview_back2" href="#" data-rel="back" class="ui-btn ui-shadow ui-btn-left ui-corner-all ui-btn-icon-notext ui-icon-carat-l">Back</a>
+		<h1>WebView Testing</h1>
+		<a id="a_webview_refresh2" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-right ui-icon-refresh ui-btn-icon-notext" data-role="button" title="Menu">Refresh</a>
+</div>
+	<div data-role="main" class="ui-content" >
+	<input type="button" value="Set Cookie" onclick="WriteCookie();"/>
+	<!-- <a id="webviewurl1" name="webviewurl1" href="http://192.168.1.160/~gautam/cookietestformapp.html">Load desktop site</a> 
+	</div>
+</div>-->
 </body>
 </html>
