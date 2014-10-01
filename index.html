@@ -688,8 +688,8 @@ $(document).on('click', '#a_contact_retrive', function(){
 	var filter = ["displayName" ,"name" ,"phoneNumbers"]; // return contact.displayName field
 	// find contacts
 	//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
-	navigator.contacts.find(onContactSuccess, onContactError, filter, options);// NOTE THIS IS THE NEW FORMAT FOR CREATING DATABASE FROM PHONE GAP 3.0
-	//navigator.contacts.find(filter, onContactSuccess, onContactError, options);
+	//navigator.contacts.find(onContactSuccess, onContactError, filter, options);// NOTE THIS IS THE NEW FORMAT FOR CREATING DATABASE FROM PHONE GAP 3.0
+	navigator.contacts.find(filter, onContactSuccess, onContactError, options);
 
 	function onContactSuccess(contacts) {
 		var autocompletenumber = new Array();
@@ -1415,7 +1415,7 @@ $(document).on('pagecreate', '#pageSettings', function(){
 	
 	// BELOW CODE IS TO CONTROL TRANSITION WHEN THE SETTINGS REFRESH BUTTON IS PRESSED //
 	$(document).on('click', '#a_refresh', function(){
-		console.log("bt_refresh_test");
+		console.log("pagesettings_refresh_test");
 		//alert("bt_retrive_test clicked");
 		var usrl = document.URL ;
 		//alert(usrl);
