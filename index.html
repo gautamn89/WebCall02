@@ -180,7 +180,7 @@ function onDeviceReady() {
 	if (window.device.platform == 'iOS')        
             StatusBar.overlaysWebView(false);
 	//app.receivedEvent('deviceready');
-	alert("Status bar value hidden");
+	console.log("Status bar value hidden");
 	
 	
 	
@@ -393,11 +393,15 @@ function onContactSuccess(contacts) {
 				if(contacts[i].phoneNumbers != null)
 				{
 					//below code is to re insert the updated list
-					if(contacts[i].displayName == null)
-						var name = contacts[i].name.givenName + contacts[i].name.familyName;
-					else
+					if(contacts[i].displayName == null){
+						if(contacts[i].name.familyName == null)
+							var name = contacts[i].name.givenName;
+						else
+							var name = contacts[i].name.givenName + contacts[i].name.familyName;
+					}
+					else {
 						var name = contacts[i].displayName;
-				
+					}
 				var phonenumber = contacts[i].phoneNumbers[0].value;
 				console.log("Name" + name);
 				console.log("Phonenumber" + phonenumber);
@@ -435,10 +439,16 @@ function onContactSuccess(contacts) {
 				var licls = $("</li>");
 				var a = $("<a>");
 				var acls = $("</a>");
-				if(contacts[i].displayName == null)
-				   	a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName + contacts[i].name.familyName);
-					else
+				if(contacts[i].displayName == null){
+					
+					if(contacts[i].name.familyName == null)
+						a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName);
+				   	else
+				   		a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName + contacts[i].name.familyName);
+				}
+				else {
 					a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].displayName);
+				}
 				a.attr("href", contacts[i].phoneNumbers[0].value);
 				$("#contactlist").append(li)
 				li.append(a); //apended to li becos we wnad anchor tag inside tthe list
@@ -751,10 +761,16 @@ $(document).on('click', '#a_contact_retrive', function(){
 				//below array is for autocomplete in direct call section
 				autocompletenumber.push(contacts[i].phoneNumbers[0].value);
 				//below code is to re insert the updated list
-				if(contacts[i].displayName === null)
-					var name = contacts[i].name.givenName + contacts[i].name.familyName;
-				else
+				if(contacts[i].displayName === null) {
+					
+					if(contacts[i].name.familyName == null)
+						var name = contacts[i].name.givenName;
+					else
+						var name = contacts[i].name.givenName + contacts[i].name.familyName;
+				}
+				else {
 					var name = contacts[i].displayName;
+				}
 				var phonenumber = contacts[i].phoneNumbers[0].value;
 				console.log("Name" + name);
 				console.log("Phonenumber" + phonenumber);
@@ -764,11 +780,15 @@ $(document).on('click', '#a_contact_retrive', function(){
 				var licls = $("</li>");
 				var a = $("<a>");
 				var acls = $("</a>");
-				if(contacts[i].displayName == null)
-					a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName + contacts[i].name.familyName);
-				else
+				if(contacts[i].displayName == null) {
+					if(contacts[i].name.familyName == null)
+						a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName);
+					else
+						a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].name.givenName + contacts[i].name.familyName);
+				}
+				else {
 					a.attr("id", contacts[i].phoneNumbers[0].value).text(contacts[i].displayName);
-				
+				}
 				a.attr("href", contacts[i].phoneNumbers[0].value);
 				$("#contactlist").append(li)
 				li.append(a); //apended to li becos we wnad anchor tag inside tthe list
@@ -3174,7 +3194,7 @@ $(document).on('pagecreate', '#pageTest2', function(){
 		</form>
 	</div>
 	<div data-role="footer" id="testid" data-position="fixed" data-theme="b">
-		<div data-role="navbar" data-grid="c">
+		<div data-role="navbar" data-grid="b">
 		<ul>
 			<li><a href="#" data-icon="grid" >Dial</a></li>
 			<!-- <li><a href="#pageDialPad" data-icon="grid" data-role="tab" class="ui-btn ui-btn-b">Dial test</a></li>-->
@@ -3218,13 +3238,13 @@ $(document).on('pagecreate', '#pageTest2', function(){
 		</div>
 	</div>
 	<div data-role="footer" data-position="fixed" data-theme="b"> <!-- data-position="fixed" is add so that the panel can be scroll -->
-		<div data-role="navbar" data-grid="c">
+		<div data-role="navbar" data-grid="b">
 		<ul>
 			<!-- <li><a href="#pageDirectCall" data-icon="grid">Dial</a></li> -->
 			<li><a href="#pageDialPad" data-icon="grid">Dial</a></li>
 			<li><a href="#pageContactList" data-icon="user">Contacts</a></li>
 			<li><a href="#pageRecentlyDialed" data-icon="phone" >Recent</a></li>
-			<li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
+			<!-- <li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>-->
 		</ul>
 		</div><!-- /navbar -->
 	</div>
@@ -3328,14 +3348,14 @@ $(document).on('pagecreate', '#pageTest2', function(){
 		</div>
 	</div>
 	<div data-role="footer" data-position="fixed" data-theme="b" > <!-- data-position="fixed" is add so that the panel can be scroll -->
-	<div data-role="navbar" data-grid="c">
+	<div data-role="navbar" data-grid="b">
 	<ul>
 		<!-- <li><a href="#pageDirectCall" data-icon="grid">Dial</a></li> -->
 		<li><a href="#pageDialPad" data-icon="grid">Dial</a></li>
 		<li><a href="#pageContactList" data-icon="user">Contacts</a></li>
 		<li><a href="#pageRecentlyDialed" data-icon="phone">Recent</a></li>
-		<li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
-		<!-- <li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
+		<!-- <li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
+		<li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
 		<li><a id="logout" data-icon="power" data-icon="href="#" >Logout</a></li> -->
 	</ul>
 	</div><!-- /navbar -->
@@ -3364,14 +3384,14 @@ $(document).on('pagecreate', '#pageTest2', function(){
 		</div>
 	</div>
 	<div data-role="footer" data-position="fixed" data-theme="b"> <!-- data-position="fixed" is add so that the panel can be scroll -->
-	<div data-role="navbar" data-grid="c">
+	<div data-role="navbar" data-grid="b">
 		<ul>
 			<!-- <li><a href="#pageDirectCall" data-icon="grid">Dial</a></li> -->
 			<li><a href="#pageDialPad" data-icon="grid">Dial</a></li>
 			<li><a href="#pageContactList" data-icon="user">Contacts</a></li>
 			<li><a href="#pageRecentlyDialed" data-icon="phone">Recent</a></li>
-			<li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
-			<!-- <li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
+			<!-- <li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
+			<li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
 			<li><a id="logout" data-icon="power" data-icon="href="#" >Logout</a></li> -->
 		</ul>
 	</div><!-- /navbar -->
@@ -3532,14 +3552,15 @@ $(document).on('pagecreate', '#pageTest2', function(){
 		</ul>
 	</div>
 	</div>
-	<div data-role="navbar" data-grid="c">
+	<div data-role="navbar" data-grid="b">
 		<ul>
 			<!-- <li><a href="#pageDirectCall" data-icon="grid">Dial</a></li> -->
 			<li><a href="#" data-icon="grid">Dial</a></li>
+			<li><a href="#pageDialPad" data-icon="grid">Dial</a></li>
 			<li><a href="#pageContactList" data-icon="user">Contacts</a></li>
 			<li><a href="#pageRecentlyDialed" data-icon="phone">Recent</a></li>
-			<li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
-			 <!--<li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
+			<!--<li><a href="#pageCallLogs" data-icon="clock">Call Logs</a></li>
+			 <li><a href="#pageSettings" data-icon="gear">Account Details</a></li>
 			<li><a id="logout" data-icon="power" data-icon="href="#" >Logout</a></li> -->
 		</ul>
 	</div>
